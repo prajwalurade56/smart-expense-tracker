@@ -1,0 +1,441 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Expense Tracker</title>
+<style>
+:root {
+  --bg: #0b1020;
+  --panel: #131b2e;
+  --panel2: #19243a;
+  --text: #f4f7ff;
+  --muted: #91a0bb;
+  --line: #27344d;
+  --blue: #6c8cff;
+  --green: #37d6a0;
+  --red: #ff7185;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  background: radial-gradient(ellipse at top left, #17294a 0, var(--bg) 45%);
+  color: var(--text);
+  min-height: 100vh;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app { max-width: 1250px; margin: auto; padding: 28px 22px 45px; }
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 32px;
+}
+.brand { display: flex; align-items: center; gap: 13px; }
+.logo {
+  width: 48px; height: 48px; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--blue), #9b7cff);
+  border-radius: 15px; font-size: 25px; box-shadow: 0 8px 28px #6c8cff35;
+}
+.brand h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -.5px; }
+.brand p, .muted { color: var(--muted); font-size: 13px; margin: 0; }
+.status {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line);
+  padding: 10px 14px; border-radius: 30px; font-size: 12px; color: var(--muted);
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #f6bd60; }
+.dot.ok { background: var(--green); }
+.dot.bad { background: var(--red); }
+.welcome { margin-bottom: 24px; }
+.welcome h2 { margin: 0 0 7px; font-size: clamp(25px, 4vw, 34px); }
+.welcome p { color: var(--muted); margin: 0; }
+.summary {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.stat, .panel {
+  background: linear-gradient(145deg, #172239, var(--panel));
+  border: 1px solid var(--line); border-radius: 19px;
+  box-shadow: 0 12px 35px #00000012;
+}
+.stat { padding: 21px; min-width: 0; }
+.stat-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.stat-label { color: var(--muted); font-size: 13px; }
+.stat-icon {
+  display: grid; place-items: center; width: 38px; height: 38px;
+  border-radius: 12px; background: var(--panel2); font-size: 19px;
+}
+.stat-value { font-size: clamp(22px, 3vw, 30px); font-weight: 750; margin-top: 16px; overflow-wrap: anywhere; }
+.income { color: var(--green); }
+.expense { color: var(--red); }
+.content { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
+.panel { padding: 22px; min-width: 0; }
+.panel-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+.panel-title h3 { margin: 0; font-size: 17px; }
+.panel-title p { color: var(--muted); font-size: 12px; margin: 5px 0 0; }
+.field { margin-bottom: 15px; }
+label { display: block; font-size: 12px; color: #c3cde0; margin-bottom: 8px; }
+input, select {
+  width: 100%; padding: 12px 13px; color: var(--text);
+  background: #0d1527; border: 1px solid var(--line); border-radius: 10px;
+  outline: none; min-width: 0;
+}
+input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #6c8cff20; }
+select option { background: #111a2d; }
+.type-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.type-btn {
+  border: 1px solid var(--line); border-radius: 10px; padding: 11px;
+  color: var(--muted); background: #0d1527;
+}
+.type-btn.active.income-type { border-color: var(--green); color: var(--green); background: #37d6a010; }
+.type-btn.active.expense-type { border-color: var(--red); color: var(--red); background: #ff718510; }
+.primary {
+  width: 100%; border: 0; padding: 13px 16px; border-radius: 11px;
+  color: #fff; font-weight: 700; background: linear-gradient(100deg, #6686ff, #8c72ff);
+  box-shadow: 0 8px 20px #6c8cff25;
+}
+.primary:disabled { opacity: .6; cursor: wait; }
+.message { font-size: 12px; line-height: 1.5; margin-top: 12px; color: var(--muted); }
+.message.error { color: var(--red); }
+.message.success { color: var(--green); }
+.list-panel { min-height: 420px; }
+.tools { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 16px; }
+.tools input { flex: 1 1 150px; }
+.tools select { flex: 0 1 150px; }
+.table-wrap { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 540px; }
+th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .7px; text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 15px 10px; font-size: 13px; border-bottom: 1px solid #27344d90; }
+td.amount { white-space: nowrap; font-weight: 700; }
+.transaction-title { font-weight: 650; }
+.category { display: inline-block; padding: 5px 9px; border-radius: 20px; background: var(--panel2); color: #bdc9e1; font-size: 11px; }
+.delete-btn { border: 1px solid #ff71854a; background: #ff718510; color: var(--red); border-radius: 8px; padding: 7px 9px; }
+.delete-btn:disabled { opacity: .5; cursor: wait; }
+.empty { text-align: center; padding: 45px 10px; color: var(--muted); font-size: 13px; }
+.footer { text-align: center; color: #7786a2; font-size: 12px; margin-top: 25px; }
+@media (max-width: 850px) {
+  .content { grid-template-columns: 1fr; }
+  .summary { gap: 10px; }
+  .stat { padding: 16px; }
+  .panel { padding: 18px; }
+}
+@media (max-width: 520px) {
+  .app { padding: 20px 13px 30px; }
+  .summary { grid-template-columns: 1fr; }
+  .stat-value { margin-top: 10px; }
+  .topbar { align-items: flex-start; }
+  .status { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">₹</div>
+      <div>
+        <h1>SmartSpend</h1>
+        <p>Personal finance dashboard</p>
+      </div>
+    </div>
+    <div class="status"><span class="dot" id="statusDot"></span><span id="dbStatus">Checking database...</span></div>
+
+<button id="logoutBtn" type="button"
+style="padding:10px 14px;border-radius:10px;border:1px solid #27344d;background:#19243a;color:white;cursor:pointer">
+Logout
+</button>
+
+  </header>
+
+  <section class="welcome">
+    <h2>Take control of your money <span style="color:#8ba2ff">✦</span></h2>
+    <p>Track your income, manage expenses, and stay on top of your goals.</p>
+  </section>
+
+  <section class="summary">
+    <article class="stat">
+      <div class="stat-head"><span class="stat-label">Total Balance</span><span class="stat-icon">💳</span></div>
+      <div class="stat-value" id="balance">₹0.00</div>
+      <p class="muted" style="margin-top:8px">Income minus expenses</p>
+    </article>
+    <article class="stat">
+      <div class="stat-head"><span class="stat-label">Total Income</span><span class="stat-icon">↗️</span></div>
+      <div class="stat-value income" id="totalIncome">₹0.00</div>
+      <p class="muted" style="margin-top:8px">Money received</p>
+    </article>
+    <article class="stat">
+      <div class="stat-head"><span class="stat-label">Total Expenses</span><span class="stat-icon">↘️</span></div>
+      <div class="stat-value expense" id="totalExpense">₹0.00</div>
+      <p class="muted" style="margin-top:8px">Money spent</p>
+    </article>
+  </section>
+
+  <main class="content">
+    <section class="panel">
+      <div class="panel-title">
+        <div><h3>Add transaction</h3><p>Record income or an expense</p></div>
+        <span style="font-size:22px">✚</span>
+      </div>
+      <form id="transactionForm">
+        <div class="field">
+          <label>Transaction type</label>
+          <div class="type-switch">
+            <button class="type-btn active expense-type" id="expenseBtn" type="button">− Expense</button>
+            <button class="type-btn income-type" id="incomeBtn" type="button">＋ Income</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" name="title" maxlength="100" placeholder="e.g. Grocery shopping" required>
+        </div>
+        <div class="field">
+          <label for="amount">Amount (₹)</label>
+          <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option>Food</option><option>Transport</option><option>Shopping</option>
+            <option>Bills</option><option>Education</option><option>Health</option>
+            <option>Salary</option><option>Freelance</option><option>Business</option>
+            <option>Entertainment</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="date">Date</label>
+          <input id="date" name="transaction_date" type="date" required>
+        </div>
+        <button class="primary" id="submitBtn" type="submit">＋ Add transaction</button>
+        <div class="message" id="formMessage" role="status"></div>
+      </form>
+    </section>
+
+    <section class="panel list-panel">
+      <div class="panel-title">
+        <div><h3>Recent transactions</h3><p id="transactionCount">Your latest activity</p></div>
+        <span style="font-size:22px">◷</span>
+      </div>
+      <div class="tools">
+        <input id="search" type="search" placeholder="Search transactions..." aria-label="Search transactions">
+        <select id="filter" aria-label="Filter transactions">
+          <option value="all">All types</option>
+          <option value="income">Income only</option>
+          <option value="expense">Expenses only</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Transaction</th><th>Category</th><th>Date</th><th>Amount</th><th>Action</th></tr></thead>
+          <tbody id="transactionRows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyState">Loading transactions...</div>
+      <div class="message" id="listMessage" role="status"></div>
+    </section>
+  </main>
+  <footer class="footer">SmartSpend · Built with HTML, CSS, JavaScript, Node.js & MySQL</footer>
+</div>
+
+<script>
+const API = "/api";
+let transactions = [];
+let currentType = "expense";
+
+const $ = (id) => document.getElementById(id);
+const money = (value) => new Intl.NumberFormat("en-IN", {
+  style: "currency", currency: "INR", minimumFractionDigits: 2
+}).format(Number(value) || 0);
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[char]));
+}
+
+function setType(type) {
+  currentType = type;
+  $("expenseBtn").classList.toggle("active", type === "expense");
+  $("incomeBtn").classList.toggle("active", type === "income");
+  $("submitBtn").textContent = type === "income" ? "＋ Add income" : "＋ Add expense";
+}
+$("expenseBtn").addEventListener("click", () => setType("expense"));
+$("incomeBtn").addEventListener("click", () => setType("income"));
+
+function setMessage(id, text, kind = "") {
+  const el = $(id);
+  el.textContent = text;
+  el.className = "message" + (kind ? " " + kind : "");
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+  const raw = String(value).slice(0, 10);
+  const parts = raw.split("-");
+  if (parts.length !== 3) return raw;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function render() {
+  const income = transactions
+    .filter(t => t.type === "income")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+  const expense = transactions
+    .filter(t => t.type === "expense")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  $("balance").textContent = money(income - expense);
+  $("totalIncome").textContent = money(income);
+  $("totalExpense").textContent = money(expense);
+
+  const query = $("search").value.trim().toLowerCase();
+  const filter = $("filter").value;
+  const visible = transactions.filter(t => {
+    const matchesType = filter === "all" || t.type === filter;
+    const matchesSearch = [t.title, t.category, t.type]
+      .some(v => String(v || "").toLowerCase().includes(query));
+    return matchesType && matchesSearch;
+  });
+
+  $("transactionCount").textContent =
+    `${visible.length} transaction${visible.length === 1 ? "" : "s"}`;
+
+  $("transactionRows").innerHTML = visible.map(t => `
+    <tr>
+      <td><span class="transaction-title">${escapeHTML(t.title)}</span></td>
+      <td><span class="category">${escapeHTML(t.category || "Other")}</span></td>
+      <td>${escapeHTML(formatDate(t.transaction_date))}</td>
+      <td class="amount ${t.type === "income" ? "income" : "expense"}">
+        ${t.type === "income" ? "+" : "−"}${money(t.amount)}
+      </td>
+      <td><button class="delete-btn" data-delete="${Number(t.id)}" type="button" aria-label="Delete transaction">Delete</button></td>
+    </tr>
+  `).join("");
+
+  $("emptyState").style.display = visible.length ? "none" : "block";
+  if (!visible.length) {
+    $("emptyState").textContent = transactions.length
+      ? "No transactions match your search."
+      : "No transactions yet. Add your first transaction!";
+  }
+}
+
+async function checkDatabase() {
+  try {
+    const response = await fetch(`${API}/health`);
+    const data = await response.json();
+    if (!response.ok || data.status !== "connected") throw new Error(data.error || "Database not connected");
+    $("statusDot").className = "dot ok";
+    $("dbStatus").textContent = "MySQL connected";
+  } catch (error) {
+    $("statusDot").className = "dot bad";
+    $("dbStatus").textContent = "Database unavailable";
+  }
+}
+
+async function loadTransactions() {
+  try {
+    const response = await fetch(`${API}/transactions`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not load transactions");
+    if (!Array.isArray(data)) throw new Error("Unexpected response from server");
+    transactions = data;
+    render();
+    setMessage("listMessage", "");
+  } catch (error) {
+    $("emptyState").style.display = "block";
+    $("emptyState").textContent = "Could not load transactions. Check that the server and MySQL are running.";
+    setMessage("listMessage", error.message, "error");
+  }
+}
+
+$("transactionForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const title = $("title").value.trim();
+  const amount = Number($("amount").value);
+  const category = $("category").value;
+  const transaction_date = $("date").value;
+
+  if (!title || !Number.isFinite(amount) || amount <= 0 || !transaction_date) {
+    setMessage("formMessage", "Please enter a title, a valid amount, and a date.", "error");
+    return;
+  }
+
+  const button = $("submitBtn");
+  button.disabled = true;
+  setMessage("formMessage", "Saving transaction...");
+
+  try {
+    const response = await fetch(`${API}/transactions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, amount, type: currentType, category, transaction_date })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not save transaction");
+
+    $("transactionForm").reset();
+    $("date").value = new Date().toLocaleDateString("en-CA");
+    setType("expense");
+    await loadTransactions();
+    setMessage("formMessage", "Transaction saved successfully!", "success");
+    $("title").focus();
+  } catch (error) {
+    setMessage("formMessage", `${error.message}. Check your server and database connection.`, "error");
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$("transactionRows").addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-delete]");
+  if (!button) return;
+  const id = button.dataset.delete;
+  if (!confirm("Delete this transaction? This cannot be undone.")) return;
+
+  button.disabled = true;
+  setMessage("listMessage", "Deleting transaction...");
+  try {
+    const response = await fetch(`${API}/transactions/${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not delete transaction");
+    await loadTransactions();
+    setMessage("listMessage", "Transaction deleted.", "success");
+  } catch (error) {
+    setMessage("listMessage", error.message, "error");
+    button.disabled = false;
+  }
+});
+
+$("search").addEventListener("input", render);
+$("filter").addEventListener("change", render);
+
+$("date").value = new Date().toLocaleDateString("en-CA");
+checkDatabase();
+loadTransactions();
+</script>
+
+<script>
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  try {
+    const response = await fetch("/api/logout", {
+      method: "POST",
+      credentials: "same-origin"
+    });
+
+    if (response.ok) {
+      window.location.replace("/login");
+    } else {
+      alert("Logout failed. Please try again.");
+    }
+  } catch (error) {
+    alert("Server connection failed.");
+  }
+});
+</script>
+
+</body>
+</html>

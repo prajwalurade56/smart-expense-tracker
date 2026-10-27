@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpend - Login</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: white;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border: 1px solid #334155;
+      border-radius: 18px;
+      background: #111c30;
+      box-shadow: 0 20px 50px #0005;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      color: #60a5fa;
+      text-align: center;
+    }
+
+    .subtitle {
+      margin-bottom: 25px;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    button, input {
+      font-size: 15px;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #334155;
+      border-radius: 9px;
+      color: white;
+      background: #1e293b;
+      cursor: pointer;
+    }
+
+    .tabs button.active,
+    .submit {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 7px;
+      color: #cbd5e1;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #475569;
+      border-radius: 9px;
+      background: #0f172a;
+      color: white;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #60a5fa;
+    }
+
+    .password-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .password-row input {
+      min-width: 0;
+    }
+
+    .show {
+      padding: 0 12px;
+      border: 1px solid #475569;
+      border-radius: 9px;
+      background: #1e293b;
+      color: white;
+      cursor: pointer;
+    }
+
+    .submit {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: none;
+      border-radius: 9px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    #message {
+      margin-top: 16px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .hint {
+      margin-top: 20px;
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>SmartSpend</h1>
+    <p class="subtitle">Manage your money smarter.</p>
+
+    <div class="tabs">
+      <button type="button" id="loginTab" class="active">Login</button>
+      <button type="button" id="signupTab">Sign Up</button>
+    </div>
+
+    <form id="authForm">
+      <div id="nameField" hidden>
+        <label for="name">Full Name</label>
+        <input id="name" type="text" minlength="2" maxlength="100"
+               autocomplete="name" placeholder="Enter your name">
+      </div>
+
+      <label for="email">Email Address</label>
+      <input id="email" type="email" maxlength="255"
+             autocomplete="email" placeholder="you@example.com" required>
+
+      <label for="password">Password</label>
+      <div class="password-row">
+        <input id="password" type="password" minlength="1" maxlength="72"
+               autocomplete="current-password"
+               placeholder="Enter password" required>
+        <button type="button" id="showBtn" class="show">Show</button>
+      </div>
+
+      <button id="submitBtn" type="submit" class="submit">Login</button>
+      <p id="message" role="status" aria-live="polite"></p>
+    </form>
+
+    <p class="hint">
+      For a new account, select Sign Up.<br>
+      New passwords must be at least 12 characters.
+    </p>
+  </main>
+
+  <script>
+    const form = document.getElementById("authForm");
+    const loginTab = document.getElementById("loginTab");
+    const signupTab = document.getElementById("signupTab");
+    const nameField = document.getElementById("nameField");
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const submitBtn = document.getElementById("submitBtn");
+    const showBtn = document.getElementById("showBtn");
+    const message = document.getElementById("message");
+
+    let mode = "login";
+
+    function setMode(newMode) {
+      mode = newMode;
+      const signup = mode === "signup";
+
+      loginTab.classList.toggle("active", !signup);
+      signupTab.classList.toggle("active", signup);
+      nameField.hidden = !signup;
+      nameInput.required = signup;
+      passwordInput.minLength = signup ? 12 : 1;
+      passwordInput.autocomplete = signup ? "new-password" : "current-password";
+      submitBtn.textContent = signup ? "Create Account" : "Login";
+      message.textContent = "";
+    }
+
+    loginTab.addEventListener("click", () => setMode("login"));
+    signupTab.addEventListener("click", () => setMode("signup"));
+
+    showBtn.addEventListener("click", () => {
+      const showing = passwordInput.type === "text";
+      passwordInput.type = showing ? "password" : "text";
+      showBtn.textContent = showing ? "Show" : "Hide";
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      submitBtn.disabled = true;
+      message.textContent = "Please wait...";
+
+      const payload = {
+        email: emailInput.value.trim(),
+        password: passwordInput.value
+      };
+
+      if (mode === "signup") {
+        payload.name = nameInput.value.trim();
+      }
+
+      try {
+        const response = await fetch(
+          mode === "signup" ? "/api/signup" : "/api/login",
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || "Request failed. Please try again.");
+        }
+
+        window.location.replace("/app");
+      } catch (error) {
+        message.textContent = error.message || "Server connection failed.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
